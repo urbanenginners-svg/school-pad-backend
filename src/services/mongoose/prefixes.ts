@@ -1,3 +1,4 @@
 export const prefixes = {
-    User: 'user'
+    User: 'user',
+    Role: 'role',
 }
