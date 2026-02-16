@@ -22,8 +22,8 @@ export class EnvironmentVariables {
   @IsString()
   JWT_SECRET: string;
 
-  @IsString()
-  CTRL_SENDGRID_KEY: string;
+//   @IsString()
+//   CTRL_SENDGRID_KEY: string;
 
   // @IsString()
   // AUTH_NET_LOGIN_ID: string;
@@ -37,8 +37,8 @@ export class EnvironmentVariables {
   @IsString()
   SENTRY_DSN: string;
 
-  @IsString()
-  CTRL_FRONTEND_URL: string;
+//   @IsString()
+//   CTRL_FRONTEND_URL: string;
 }
 
 @Injectable()
