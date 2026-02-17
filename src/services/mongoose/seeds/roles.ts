@@ -9,7 +9,11 @@ export const roles = [
             `${resource.Me}:${PermissionEnum.WRITE}`,
             `${resource.Me}:${PermissionEnum.READ}`,
             `${resource.Me}:${PermissionEnum.DELETE}`,
-            `${resource.Me}:${PermissionEnum.UPDATE}`
+            `${resource.Me}:${PermissionEnum.UPDATE}`,
+            `${resource.Institution}:${PermissionEnum.WRITE}`,
+            `${resource.Institution}:${PermissionEnum.READ}`,
+            `${resource.Institution}:${PermissionEnum.UPDATE}`,
+            `${resource.Institution}:${PermissionEnum.DELETE}`
         ]
     }
 ]

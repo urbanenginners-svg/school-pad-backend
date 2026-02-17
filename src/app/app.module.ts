@@ -5,9 +5,10 @@ import { AppConfigModule } from "src/services/env/env.module";
 import { AuthModule } from "src/api/auth/auth.module";
 import { PermissionModule } from "src/api/permission/permission.module";
 import { RoleModule } from "src/api/role/role.module";
+import { InstitutionModule } from "src/api/institution/institution.module";
 
 @Module({
-    imports: [AppConfigModule, AuthModule, RoleModule, PermissionModule],
+    imports: [AppConfigModule, AuthModule, RoleModule, PermissionModule, InstitutionModule],
     controllers: [AppController],
     providers: [AppService]
 })
