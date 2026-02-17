@@ -9,6 +9,7 @@ import {
   Param,
   Version,
   Query,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 
@@ -28,9 +29,11 @@ import { CheckActionPolicy } from "src/services/casl/casl-policies.decorator";
 import { PermissionEnum } from "src/utils/enums/permission.enum";
 import { resource } from "src/utils/constants/resource";
 import { CommonFieldsDto } from "src/utils/dtos/common-fields.dto";
+import { PoliciesGuard } from "src/services/casl/casl-policies.guard";
 
 @ApiTags("Institutions")
 @Controller("institutions")
+@UseGuards(PoliciesGuard)
 export class InstitutionController {
   constructor(private readonly institutionService: InstitutionService) {}
 
