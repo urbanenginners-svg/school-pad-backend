@@ -1,17 +1,30 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
 
-import { Institution, InstitutionDocument } from 'src/services/mongoose/schemas/institution.schema';
-import { CreateInstitutionDto, UpdateInstitutionDto } from './dto';
+import {
+  Institution,
+  InstitutionDocument,
+} from "src/services/mongoose/schemas/institution.schema";
+import { CreateInstitutionDto, UpdateInstitutionDto } from "./dto";
+import { CommonFieldsDto } from "src/utils/dtos/common-fields.dto";
+import { getPaginatedDataWithAggregation } from "src/utils/services/get-paginated-data-aggregation.service";
 
 @Injectable()
 export class InstitutionService {
   constructor(
-    @InjectModel(Institution.name) private institutionModel: Model<InstitutionDocument>,
+    @InjectModel(Institution.name)
+    private institutionModel: Model<InstitutionDocument>,
   ) {}
 
-  async create(createInstitutionDto: CreateInstitutionDto, userId?: string): Promise<Institution> {
+  async create(
+    createInstitutionDto: CreateInstitutionDto,
+    userId?: string,
+  ): Promise<Institution> {
     const institutionData = {
       ...createInstitutionDto,
       isActive: true,
@@ -22,11 +35,15 @@ export class InstitutionService {
     return institution.save();
   }
 
-  async findAll(): Promise<Institution[]> {
-    return this.institutionModel
-      .find({ deletedAt: null })
-      .sort({ createdAt: -1 })
-      .exec();
+  async findAll(
+    query: CommonFieldsDto,
+  ): Promise<{ data: InstitutionDocument[]; meta: any }> {
+    const [data, meta] = await getPaginatedDataWithAggregation(
+      this.institutionModel,
+      query,
+      [],
+    );
+    return { data, meta };
   }
 
   async findOne(id: string): Promise<InstitutionDocument> {
@@ -72,7 +89,9 @@ export class InstitutionService {
     const institution = await this.findOne(id);
 
     if (institution.isActive) {
-      throw new BadRequestException(`Institution with ID ${id} is already active`);
+      throw new BadRequestException(
+        `Institution with ID ${id} is already active`,
+      );
     }
 
     institution.isActive = true;
@@ -87,7 +106,9 @@ export class InstitutionService {
     const institution = await this.findOne(id);
 
     if (!institution.isActive) {
-      throw new BadRequestException(`Institution with ID ${id} is already inactive`);
+      throw new BadRequestException(
+        `Institution with ID ${id} is already inactive`,
+      );
     }
 
     institution.isActive = false;
