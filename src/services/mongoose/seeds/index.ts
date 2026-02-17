@@ -2,6 +2,7 @@ import { config } from 'dotenv';
 import mongoose from 'mongoose';
 import * as seedPermission from './seedPermission';
 import * as seedRoles from './seedRoles';
+import * as seedUsers from './seedUsers';
 
 // Load environment variables from .env file
 config();
@@ -31,6 +32,13 @@ async function runSeeds() {
     console.log('👥 Seeding Roles...');
     console.log('═══════════════════════════════════════');
     await seedRoles.up();
+    console.log('');
+
+    // Run user seeding
+    console.log('═══════════════════════════════════════');
+    console.log('👤 Seeding Users...');
+    console.log('═══════════════════════════════════════');
+    await seedUsers.up();
     console.log('');
 
     console.log('✅ Database seeding completed successfully!');
