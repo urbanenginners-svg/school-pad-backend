@@ -3,4 +3,6 @@ export const prefixes = {
     Role: 'role',
     Permission: 'perm',
     Institution: 'inst',
+    InstitutionUser: 'inst-user',
+    InstitutionRole: 'inst-role',
 }

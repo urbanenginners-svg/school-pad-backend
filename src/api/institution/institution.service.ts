@@ -14,7 +14,15 @@ import {
 } from "src/services/mongoose/schemas/institution.schema";
 import { User } from "src/services/mongoose/schemas/user.schema";
 import { Role } from "src/services/mongoose/schemas/role.schema";
-import { CreateInstitutionDto, UpdateInstitutionDto, CreateInstitutionAdminDto } from "./dto";
+import { InstitutionUser, InstitutionUserDocument } from "src/services/mongoose/schemas/institution-user.schema";
+import { InstitutionRole, InstitutionRoleDocument } from "src/services/mongoose/schemas/institution-role.schema";
+import { 
+  CreateInstitutionDto, 
+  UpdateInstitutionDto, 
+  CreateInstitutionAdminDto,
+  CreateInstitutionUserDto,
+  UpdateInstitutionUserDto
+} from "./dto";
 import { CommonFieldsDto } from "src/utils/dtos/common-fields.dto";
 import { getPaginatedDataWithAggregation } from "src/utils/services/get-paginated-data-aggregation.service";
 
@@ -27,6 +35,10 @@ export class InstitutionService {
     private userModel: Model<User>,
     @InjectModel(Role.name)
     private roleModel: Model<Role>,
+    @InjectModel(InstitutionUser.name)
+    private institutionUserModel: Model<InstitutionUserDocument>,
+    @InjectModel(InstitutionRole.name)
+    private institutionRoleModel: Model<InstitutionRoleDocument>,
   ) {}
 
   async create(
@@ -131,7 +143,7 @@ export class InstitutionService {
     institutionId: string,
     createInstitutionAdminDto: CreateInstitutionAdminDto,
     createdByUserId?: string,
-  ): Promise<User> {
+  ): Promise<InstitutionUserDocument> {
     // Verify institution exists and is active
     const institution = await this.findOne(institutionId);
     if (!institution.isActive) {
@@ -140,20 +152,20 @@ export class InstitutionService {
       );
     }
 
-    // Check if email already exists
-    const existingUser = await this.userModel
+    // Check if email already exists in institution users
+    const existingUser = await this.institutionUserModel
       .findOne({ email: createInstitutionAdminDto.email, deletedAt: null })
       .exec();
 
     if (existingUser) {
       throw new ConflictException(
-        `User with email ${createInstitutionAdminDto.email} already exists`,
+        `Institution user with email ${createInstitutionAdminDto.email} already exists`,
       );
     }
 
     // Check if phone number already exists (if provided)
     if (createInstitutionAdminDto.phoneNumber) {
-      const existingPhone = await this.userModel
+      const existingPhone = await this.institutionUserModel
         .findOne({
           phoneNumber: createInstitutionAdminDto.phoneNumber,
           deletedAt: null,
@@ -162,20 +174,28 @@ export class InstitutionService {
 
       if (existingPhone) {
         throw new ConflictException(
-          `User with phone number ${createInstitutionAdminDto.phoneNumber} already exists`,
+          `Institution user with phone number ${createInstitutionAdminDto.phoneNumber} already exists`,
         );
       }
     }
 
-    // Find Institution Admin role
-    const institutionAdminRole = await this.roleModel
-      .findOne({ name: "Institution Admin" })
+    // Find or create Institution Admin role for this institution
+    let institutionAdminRole = await this.institutionRoleModel
+      .findOne({ name: "Institution Admin", institutionId, deletedAt: null })
       .exec();
 
     if (!institutionAdminRole) {
-      throw new NotFoundException(
-        `Institution Admin role not found. Please run seeder first.`,
-      );
+      // Create the Institution Admin role for this institution
+      const roleData = {
+        name: "Institution Admin",
+        institutionId: institutionId,
+        description: "Administrator role with full access to manage the institution",
+        permissions: [], // Will be populated based on institution-level permissions
+        isActive: true,
+        ...(createdByUserId && { createdBy: createdByUserId }),
+      };
+      institutionAdminRole = new this.institutionRoleModel(roleData);
+      await institutionAdminRole.save();
     }
 
     // Hash password
@@ -184,7 +204,7 @@ export class InstitutionService {
       10,
     );
 
-    // Create user
+    // Create user in institution users collection
     const userData = {
       firstName: createInstitutionAdminDto.firstName,
       lastName: createInstitutionAdminDto.lastName,
@@ -197,7 +217,215 @@ export class InstitutionService {
       ...(createdByUserId && { createdBy: createdByUserId }),
     };
 
-    const user = new this.userModel(userData);
+    const user = new this.institutionUserModel(userData);
+    return user.save();
+  }
+
+  // Institution User Management Methods
+  async createInstitutionUser(
+    institutionId: string,
+    createInstitutionUserDto: CreateInstitutionUserDto,
+    createdByUserId?: string,
+  ): Promise<InstitutionUserDocument> {
+    // Verify institution exists and is active
+    const institution = await this.findOne(institutionId);
+    if (!institution.isActive) {
+      throw new BadRequestException(
+        `Cannot create user for inactive institution`,
+      );
+    }
+
+    // Check if email already exists in institution users
+    const existingUser = await this.institutionUserModel
+      .findOne({ email: createInstitutionUserDto.email, deletedAt: null })
+      .exec();
+
+    if (existingUser) {
+      throw new ConflictException(
+        `Institution user with email ${createInstitutionUserDto.email} already exists`,
+      );
+    }
+
+    // Check if phone number already exists (if provided)
+    if (createInstitutionUserDto.phoneNumber) {
+      const existingPhone = await this.institutionUserModel
+        .findOne({
+          phoneNumber: createInstitutionUserDto.phoneNumber,
+          deletedAt: null,
+        })
+        .exec();
+
+      if (existingPhone) {
+        throw new ConflictException(
+          `Institution user with phone number ${createInstitutionUserDto.phoneNumber} already exists`,
+        );
+      }
+    }
+
+    // Verify role exists and belongs to this institution
+    const role = await this.institutionRoleModel
+      .findOne({ _id: createInstitutionUserDto.roleId, institutionId, deletedAt: null })
+      .exec();
+
+    if (!role) {
+      throw new NotFoundException(
+        `Institution role not found or does not belong to this institution`,
+      );
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(
+      createInstitutionUserDto.password,
+      10,
+    );
+
+    // Create institution user
+    const userData = {
+      firstName: createInstitutionUserDto.firstName,
+      lastName: createInstitutionUserDto.lastName,
+      email: createInstitutionUserDto.email,
+      phoneNumber: createInstitutionUserDto.phoneNumber,
+      password: hashedPassword,
+      institutionId: institutionId,
+      role: [role._id],
+      isActive: true,
+      ...(createdByUserId && { createdBy: createdByUserId }),
+    };
+
+    const user = new this.institutionUserModel(userData);
+    return user.save();
+  }
+
+  async findAllInstitutionUsers(
+    institutionId: string,
+    query: CommonFieldsDto,
+  ): Promise<{ data: InstitutionUserDocument[]; meta: any }> {
+    // Verify institution exists
+    await this.findOne(institutionId);
+
+    const [data, meta] = await getPaginatedDataWithAggregation(
+      this.institutionUserModel,
+      query,
+      [
+        {
+          $match: { institutionId, deletedAt: null },
+        },
+      ],
+    );
+    return { data, meta };
+  }
+
+  async findOneInstitutionUser(
+    institutionId: string,
+    userId: string,
+  ): Promise<InstitutionUserDocument> {
+    const user = await this.institutionUserModel
+      .findOne({ _id: userId, institutionId, deletedAt: null })
+      .populate('role')
+      .exec();
+
+    if (!user) {
+      throw new NotFoundException(
+        `Institution user with ID ${userId} not found`,
+      );
+    }
+
+    return user;
+  }
+
+  async updateInstitutionUser(
+    institutionId: string,
+    userId: string,
+    updateInstitutionUserDto: UpdateInstitutionUserDto,
+    updatedByUserId?: string,
+  ): Promise<InstitutionUserDocument> {
+    const user = await this.findOneInstitutionUser(institutionId, userId);
+
+    // If role is being updated, verify it exists and belongs to this institution
+    if (updateInstitutionUserDto.roleId) {
+      const role = await this.institutionRoleModel
+        .findOne({ _id: updateInstitutionUserDto.roleId, institutionId, deletedAt: null })
+        .exec();
+
+      if (!role) {
+        throw new NotFoundException(
+          `Institution role not found or does not belong to this institution`,
+        );
+      }
+      
+      user.role = [role._id] as any;
+    }
+
+    if (updateInstitutionUserDto.firstName) {
+      user.firstName = updateInstitutionUserDto.firstName;
+    }
+    if (updateInstitutionUserDto.lastName) {
+      user.lastName = updateInstitutionUserDto.lastName;
+    }
+    if (updateInstitutionUserDto.phoneNumber) {
+      user.phoneNumber = updateInstitutionUserDto.phoneNumber;
+    }
+    if (updatedByUserId) {
+      user.lastUpdatedBy = updatedByUserId;
+    }
+
+    return user.save();
+  }
+
+  async removeInstitutionUser(
+    institutionId: string,
+    userId: string,
+    deletedByUserId?: string,
+  ): Promise<InstitutionUserDocument> {
+    const user = await this.findOneInstitutionUser(institutionId, userId);
+
+    user.deletedAt = new Date();
+    if (deletedByUserId) {
+      user.deletedBy = deletedByUserId;
+    }
+
+    return user.save();
+  }
+
+  async activateInstitutionUser(
+    institutionId: string,
+    userId: string,
+    updatedByUserId?: string,
+  ): Promise<InstitutionUserDocument> {
+    const user = await this.findOneInstitutionUser(institutionId, userId);
+
+    if (user.isActive) {
+      throw new BadRequestException(
+        `Institution user with ID ${userId} is already active`,
+      );
+    }
+
+    user.isActive = true;
+    if (updatedByUserId) {
+      user.lastUpdatedBy = updatedByUserId;
+    }
+
+    return user.save();
+  }
+
+  async deactivateInstitutionUser(
+    institutionId: string,
+    userId: string,
+    updatedByUserId?: string,
+  ): Promise<InstitutionUserDocument> {
+    const user = await this.findOneInstitutionUser(institutionId, userId);
+
+    if (!user.isActive) {
+      throw new BadRequestException(
+        `Institution user with ID ${userId} is already inactive`,
+      );
+    }
+
+    user.isActive = false;
+    if (updatedByUserId) {
+      user.lastUpdatedBy = updatedByUserId;
+    }
+
     return user.save();
   }
 }

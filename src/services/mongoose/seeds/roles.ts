@@ -15,13 +15,5 @@ export const roles = [
             `${resource.Institution}:${PermissionEnum.UPDATE}`,
             `${resource.Institution}:${PermissionEnum.DELETE}`
         ]
-    },
-    {
-        name: 'Institution Admin',
-        description: 'Administrator role for managing a specific institution',
-        permissions: [
-            `${resource.Me}:${PermissionEnum.READ}`,
-            `${resource.Me}:${PermissionEnum.UPDATE}`,
-        ]
     }
 ]
