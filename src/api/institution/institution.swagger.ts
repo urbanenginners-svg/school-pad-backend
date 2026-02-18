@@ -229,7 +229,7 @@ export function CreateInstitutionAdminSwagger() {
     ApiBearerAuth(),
     ApiOperation({
       summary: 'Create institution admin',
-      description: 'Create an institution admin user for a specific institution. This user will be created in the institution-users collection and have full administrative privileges for managing the institution. An Institution Admin role will be automatically created for the institution if it does not exist. Only Super Admin can perform this operation.',
+      description: 'Create an institution admin user for a specific institution. This user will have administrative privileges for the specified institution. Only Super Admin can perform this operation.',
     }),
     ApiParam({
       name: 'id',

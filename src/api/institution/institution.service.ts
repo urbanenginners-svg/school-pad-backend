@@ -143,7 +143,7 @@ export class InstitutionService {
     institutionId: string,
     createInstitutionAdminDto: CreateInstitutionAdminDto,
     createdByUserId?: string,
-  ): Promise<InstitutionUserDocument> {
+  ): Promise<User> {
     // Verify institution exists and is active
     const institution = await this.findOne(institutionId);
     if (!institution.isActive) {
@@ -152,20 +152,20 @@ export class InstitutionService {
       );
     }
 
-    // Check if email already exists in institution users
-    const existingUser = await this.institutionUserModel
+    // Check if email already exists in system users
+    const existingUser = await this.userModel
       .findOne({ email: createInstitutionAdminDto.email, deletedAt: null })
       .exec();
 
     if (existingUser) {
       throw new ConflictException(
-        `Institution user with email ${createInstitutionAdminDto.email} already exists`,
+        `User with email ${createInstitutionAdminDto.email} already exists`,
       );
     }
 
     // Check if phone number already exists (if provided)
     if (createInstitutionAdminDto.phoneNumber) {
-      const existingPhone = await this.institutionUserModel
+      const existingPhone = await this.userModel
         .findOne({
           phoneNumber: createInstitutionAdminDto.phoneNumber,
           deletedAt: null,
@@ -174,28 +174,20 @@ export class InstitutionService {
 
       if (existingPhone) {
         throw new ConflictException(
-          `Institution user with phone number ${createInstitutionAdminDto.phoneNumber} already exists`,
+          `User with phone number ${createInstitutionAdminDto.phoneNumber} already exists`,
         );
       }
     }
 
-    // Find or create Institution Admin role for this institution
-    let institutionAdminRole = await this.institutionRoleModel
-      .findOne({ name: "Institution Admin", institutionId, deletedAt: null })
+    // Find Institution Admin role (system-level role)
+    const institutionAdminRole = await this.roleModel
+      .findOne({ name: "Institution Admin" })
       .exec();
 
     if (!institutionAdminRole) {
-      // Create the Institution Admin role for this institution
-      const roleData = {
-        name: "Institution Admin",
-        institutionId: institutionId,
-        description: "Administrator role with full access to manage the institution",
-        permissions: [], // Will be populated based on institution-level permissions
-        isActive: true,
-        ...(createdByUserId && { createdBy: createdByUserId }),
-      };
-      institutionAdminRole = new this.institutionRoleModel(roleData);
-      await institutionAdminRole.save();
+      throw new NotFoundException(
+        `Institution Admin role not found. Please run seeder first.`,
+      );
     }
 
     // Hash password
@@ -204,7 +196,7 @@ export class InstitutionService {
       10,
     );
 
-    // Create user in institution users collection
+    // Create user in system users collection
     const userData = {
       firstName: createInstitutionAdminDto.firstName,
       lastName: createInstitutionAdminDto.lastName,
@@ -217,7 +209,7 @@ export class InstitutionService {
       ...(createdByUserId && { createdBy: createdByUserId }),
     };
 
-    const user = new this.institutionUserModel(userData);
+    const user = new this.userModel(userData);
     return user.save();
   }
 
