@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { InstitutionResponseDto } from './dto';
+import { InstitutionResponseDto, InstitutionAdminResponseDto } from './dto';
 
 export function CreateInstitutionSwagger() {
   return applyDecorators(
@@ -220,6 +220,46 @@ export function DeactivateInstitutionSwagger() {
     ApiResponse({
       status: 404,
       description: 'Institution not found',
+    }),
+  );
+}
+
+export function CreateInstitutionAdminSwagger() {
+  return applyDecorators(
+    ApiBearerAuth(),
+    ApiOperation({
+      summary: 'Create institution admin',
+      description: 'Create an institution admin user for a specific institution. This user will have administrative privileges for the specified institution. Only Super Admin can perform this operation.',
+    }),
+    ApiParam({
+      name: 'id',
+      description: 'Institution ID',
+      example: 'inst::123e4567-e89b-12d3-a456-426614174000',
+    }),
+    ApiResponse({
+      status: 201,
+      description: 'Institution admin created successfully',
+      type: InstitutionAdminResponseDto,
+    }),
+    ApiResponse({
+      status: 400,
+      description: 'Bad Request - Invalid input data or institution is inactive',
+    }),
+    ApiResponse({
+      status: 401,
+      description: 'Unauthorized',
+    }),
+    ApiResponse({
+      status: 403,
+      description: 'Forbidden - Insufficient permissions',
+    }),
+    ApiResponse({
+      status: 404,
+      description: 'Institution not found',
+    }),
+    ApiResponse({
+      status: 409,
+      description: 'Conflict - User with email or phone number already exists',
     }),
   );
 }

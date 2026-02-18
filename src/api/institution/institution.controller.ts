@@ -14,7 +14,7 @@ import {
 import { ApiTags } from "@nestjs/swagger";
 
 import { InstitutionService } from "./institution.service";
-import { CreateInstitutionDto, UpdateInstitutionDto } from "./dto";
+import { CreateInstitutionDto, UpdateInstitutionDto, CreateInstitutionAdminDto } from "./dto";
 import { DataResponse, PaginatedDataResponse } from "src/utils/response";
 import {
   CreateInstitutionSwagger,
@@ -24,6 +24,7 @@ import {
   DeleteInstitutionSwagger,
   ActivateInstitutionSwagger,
   DeactivateInstitutionSwagger,
+  CreateInstitutionAdminSwagger,
 } from "./institution.swagger";
 import { CheckActionPolicy } from "src/services/casl/casl-policies.decorator";
 import { PermissionEnum } from "src/utils/enums/permission.enum";
@@ -103,6 +104,21 @@ export class InstitutionController {
   @CheckActionPolicy(PermissionEnum.UPDATE, resource.Institution)
   async deactivate(@Param("id") id: string) {
     const result = await this.institutionService.deactivate(id);
+    return new DataResponse(result);
+  }
+
+  @Version("1")
+  @Post(":id/admin")
+  @CreateInstitutionAdminSwagger()
+  @CheckActionPolicy(PermissionEnum.WRITE, resource.Institution)
+  async createInstitutionAdmin(
+    @Param("id") id: string,
+    @Body() createInstitutionAdminDto: CreateInstitutionAdminDto,
+  ) {
+    const result = await this.institutionService.createInstitutionAdmin(
+      id,
+      createInstitutionAdminDto,
+    );
     return new DataResponse(result);
   }
 }

@@ -48,6 +48,56 @@ export class User {
     ref: "Role",
   })
   role: Role[];
+
+  @ApiProperty()
+  @Prop({
+    required: false,
+    type: String,
+    ref: "Institution",
+  })
+  institutionId?: string;
+
+  @ApiProperty()
+  @Prop({
+    required: true,
+    type: Boolean,
+    default: true,
+  })
+  isActive: boolean;
+
+  @ApiProperty()
+  @Prop({
+    required: false,
+    type: String,
+  })
+  createdBy?: string;
+
+  @ApiProperty()
+  @Prop({
+    required: false,
+    type: String,
+  })
+  lastUpdatedBy?: string;
+
+  @ApiProperty()
+  @Prop({
+    required: false,
+    type: String,
+  })
+  deletedBy?: string;
+
+  @ApiProperty()
+  @Prop({
+    required: false,
+    type: Date,
+  })
+  deletedAt?: Date;
+
+  @ApiProperty()
+  createdAt?: Date;
+
+  @ApiProperty()
+  updatedAt?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
