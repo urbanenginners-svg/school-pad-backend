@@ -3,5 +3,6 @@ export const resource = {
     Role: 'role',
     Permission: 'permission',
     Me: 'me',
-    Institution: 'institution'
+    Institution: 'institution',
+    InstitutionRole: 'institution-role'
 }

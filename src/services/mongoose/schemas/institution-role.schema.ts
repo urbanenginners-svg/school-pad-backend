@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Types, Document } from "mongoose";
+import { ApiProperty } from "@nestjs/swagger";
 
 import commonFieldsPlugin from "../plugins/common-fields";
 
@@ -7,6 +8,7 @@ export type InstitutionRoleDocument = InstitutionRole & Document;
 
 @Schema({ collection: "institution-roles" })
 export class InstitutionRole {
+  @ApiProperty()
   @Prop({
     required: true,
     type: String,
@@ -14,12 +16,14 @@ export class InstitutionRole {
   })
   _id?: string;
 
+  @ApiProperty()
   @Prop({
     required: true,
     type: String,
   })
   name: string;
 
+  @ApiProperty()
   @Prop({
     required: true,
     type: String,
@@ -27,12 +31,14 @@ export class InstitutionRole {
   })
   institutionId: string;
 
+  @ApiProperty()
   @Prop({
     required: false,
     type: String,
   })
   description?: string;
 
+  @ApiProperty({ type: [String] })
   @Prop({
     type: [Types.ObjectId],
     default: [],
@@ -40,6 +46,7 @@ export class InstitutionRole {
   })
   permissions: Types.ObjectId[]; // Array of permission ids
 
+  @ApiProperty()
   @Prop({
     required: true,
     type: Boolean,
@@ -47,31 +54,38 @@ export class InstitutionRole {
   })
   isActive: boolean;
 
+  @ApiProperty()
   @Prop({
     required: false,
     type: String,
   })
   createdBy?: string;
 
+  @ApiProperty()
   @Prop({
     required: false,
     type: String,
   })
   lastUpdatedBy?: string;
 
+  @ApiProperty()
   @Prop({
     required: false,
     type: String,
   })
   deletedBy?: string;
 
+  @ApiProperty()
   @Prop({
     required: false,
     type: Date,
   })
   deletedAt?: Date;
 
+  @ApiProperty()
   createdAt?: Date;
+  
+  @ApiProperty()
   updatedAt?: Date;
 }
 

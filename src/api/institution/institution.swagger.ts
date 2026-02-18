@@ -533,3 +533,4 @@ export function DeactivateInstitutionUserSwagger() {
     }),
   );
 }
+

@@ -8,7 +8,13 @@ import { RoleModule } from "src/api/role/role.module";
 import { InstitutionModule } from "src/api/institution/institution.module";
 
 @Module({
-    imports: [AppConfigModule, AuthModule, RoleModule, PermissionModule, InstitutionModule],
+    imports: [
+        AppConfigModule, 
+        AuthModule, 
+        RoleModule, 
+        PermissionModule, 
+        InstitutionModule
+    ],
     controllers: [AppController],
     providers: [AppService]
 })
