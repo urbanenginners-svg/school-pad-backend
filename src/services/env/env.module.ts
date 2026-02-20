@@ -1,5 +1,6 @@
 import { Global, Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 import { plainToClass } from 'class-transformer';
 import { validateSync } from 'class-validator';
 
@@ -27,6 +28,12 @@ function validate(config: Record<string, unknown>) {
       validate,
       isGlobal: true,
       cache: true,
+    }),
+    MongooseModule.forRootAsync({
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGO_CONNECTION_STRING'),
+      }),
+      inject: [ConfigService],
     }),
   ],
   providers: [AppConfigService],
