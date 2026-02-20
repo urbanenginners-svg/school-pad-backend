@@ -27,6 +27,13 @@ import {
   InstitutionUser,
   InstitutionUserSchema,
 } from 'src/services/mongoose/schemas/institution-user.schema';
+import {
+  Permission,
+  PermissionSchema,
+} from 'src/services/mongoose/schemas/permission.schema';
+import { Role, RoleSchema } from 'src/services/mongoose/schemas/role.schema';
+import { CaslAbilityFactory } from 'src/services/casl/casl-ability.factory';
+import { PoliciesGuard } from 'src/services/casl/casl-policies.guard';
 
 @Module({
   imports: [
@@ -37,10 +44,12 @@ import {
       { name: StudentEnrollment.name, schema: StudentEnrollmentSchema },
       { name: Institution.name, schema: InstitutionSchema },
       { name: InstitutionUser.name, schema: InstitutionUserSchema },
+      { name: Permission.name, schema: PermissionSchema },
+      { name: Role.name, schema: RoleSchema },
     ]),
   ],
   controllers: [AcademicController],
-  providers: [AcademicService],
+  providers: [AcademicService, CaslAbilityFactory, PoliciesGuard],
   exports: [AcademicService],
 })
 export class AcademicModule {}
