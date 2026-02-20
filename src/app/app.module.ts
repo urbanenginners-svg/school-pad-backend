@@ -6,6 +6,7 @@ import { AuthModule } from "src/api/auth/auth.module";
 import { PermissionModule } from "src/api/permission/permission.module";
 import { RoleModule } from "src/api/role/role.module";
 import { InstitutionModule } from "src/api/institution/institution.module";
+import { AcademicModule } from "src/api/academic/academic.module";
 
 @Module({
     imports: [
@@ -13,7 +14,8 @@ import { InstitutionModule } from "src/api/institution/institution.module";
         AuthModule, 
         RoleModule, 
         PermissionModule, 
-        InstitutionModule
+        InstitutionModule,
+        AcademicModule
     ],
     controllers: [AppController],
     providers: [AppService]

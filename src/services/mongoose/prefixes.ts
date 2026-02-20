@@ -5,4 +5,8 @@ export const prefixes = {
     Institution: 'inst',
     InstitutionUser: 'inst-user',
     InstitutionRole: 'inst-role',
+    AcademicProgram: 'prog',
+    AcademicClass: 'class',
+    Section: 'sect',
+    StudentEnrollment: 'enrl',
 }

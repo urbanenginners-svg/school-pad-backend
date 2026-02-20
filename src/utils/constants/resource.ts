@@ -4,5 +4,6 @@ export const resource = {
     Permission: 'permission',
     Me: 'me',
     Institution: 'institution',
-    InstitutionRole: 'institution-role'
+    InstitutionRole: 'institution-role',
+    Academic: 'academic'
 }
